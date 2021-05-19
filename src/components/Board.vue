@@ -3,19 +3,39 @@
     <h2 v-if="winner">Winner :{{ winner }}</h2>
     <h2>Player Move: {{ player }}</h2>
     <button @click="reset" class="btn btn-success mb-3">Reset</button>
-    <div v-for="_,x in 3" :key="x" class="row">
-      <button v-for="_,y in 3" :key="y" class="square" @click="move(x,y)">
+    <div v-for="(_, x) in 3" :key="x" class="row">
+      <button v-for="(_, y) in 3" :key="y" class="square" @click="move(x, y)">
         {{ squares[x][y] }}
       </button>
     </div>
     <h2 class="mt-5">History</h2>
-    <div v-for="(game,idx) in history" :key="idx">
-        Game {{ idex + 1 }}: {{ game }} won
+    <div v-for="(game, idx) in history" :key="idx">
+      Game {{ idx + 1 }}: {{ game }} won
     </div>
   </div>
 </template>
 <script>
-import { computed, onMounted, ref ,watch} from "vue";
+import { computed, onMounted, ref, watch } from "vue";
+let num_arr = 9;
+const createSize = (size) => {
+  let new_arr = [];
+  // สร้าง arr หลัก ตามจำนวน input
+  for (let i = 0; i < size; i++) {
+    // console.log(i);
+    new_arr.push([""]);
+  }
+  // สร้าง subarr  ตามจำนวน input
+  for (let j = 0; j < size; j++) {
+    // console.log(j);
+    for (let k = 0; k < size - 1; k++) {
+      new_arr[j].push("");
+    }
+  }
+  return new_arr
+};
+
+const a = new createSize(num_arr)
+console.log(a);
 
 const calculateWinner = (squares) => {
   const lines = [
@@ -29,8 +49,11 @@ const calculateWinner = (squares) => {
   ];
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c])
+    // console.log(a+' , '+b+' , '+c);
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      // console.log(squares[a]);
       return squares[a];
+    }
   }
   return null;
 };
@@ -43,11 +66,18 @@ export default {
       ["", "", ""],
       ["", "", ""],
     ]);
+    // console.log(squares);
     const winner = computed(() => calculateWinner(squares.value.flat()));
+    // console.log(winner);
     const move = (x, y) => {
+      console.log(x + "," + y);
+      console.log(player.value);
       if (winner.value) return;
+
       squares.value[x][y] = player.value;
+
       player.value = player.value === "O" ? "X" : "O";
+      console.log(player.value);
     };
     const reset = () => {
       player.value = "X";
@@ -57,19 +87,21 @@ export default {
         ["", "", ""],
       ];
     };
-    const history = ref([])
-    watch(winner,(current,previous) => {
-        if(current && !previous){
-            history.value.push(current)
-            localStorage.setItem('history',JSON.stringify(history.value))
-        }
-        // JSON.stringify()
-    })
+    const history = ref([]);
+    watch(winner, (current, previous) => {
+      console.log(winner);
+      console.log(current + "  " + previous);
+      if (current && !previous) {
+        history.value.push(current);
+        localStorage.setItem("history", JSON.stringify(history.value));
+      }
+      // JSON.stringify()
+    });
     onMounted(() => {
-        history.value = JSON.parse(localStorage.getItem(history)) ?? []
-    })
+      history.value = JSON.parse(localStorage.getItem(history)) ?? [];
+    });
 
-    return { winner, player, squares, move, reset,history };
+    return { winner, player, squares, move, reset, history };
   },
 };
 </script>
